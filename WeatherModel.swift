@@ -13,7 +13,7 @@ struct WeatherModel {
     let temperature: Float
     let cityName: String
     var temperatureString: String {
-        return String(format: "%.2f", temperature)
+        return String(format: "%.1f", temperature)
     }
     var conditionName: String {
         switch weatherId {
