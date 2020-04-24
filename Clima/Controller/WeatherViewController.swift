@@ -7,7 +7,7 @@
 //
 
 import UIKit
-
+import CoreLocation
 class WeatherViewController: UIViewController {
 
     @IBOutlet weak var searchTextField: UITextField!
@@ -15,24 +15,60 @@ class WeatherViewController: UIViewController {
     @IBOutlet weak var temperatureLabel: UILabel!
     @IBOutlet weak var cityLabel: UILabel!
     
+    let locationManager = CLLocationManager()
     var weatherManager = WeatherManager()
+    
     override func viewDidLoad() {
         super.viewDidLoad()
+        locationManager.delegate = self
+        locationManager.requestWhenInUseAuthorization()
+        locationManager.requestLocation()
         searchTextField.delegate = self
         weatherManager.delegate = self
     }
 }
 
+//MARK: - CLLocationManagerDelegate
+extension WeatherViewController: CLLocationManagerDelegate {
+    @IBAction func GPSButtonPressed(_ sender: UIButton) {
+        if !CLLocationManager.significantLocationChangeMonitoringAvailable() {
+            print("location service unavailable")
+            searchTextField.placeholder = "location service unavailable"
+            return
+        }
+        
+        locationManager.requestLocation()
+    }
+    
+    func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
+        print(error)
+    }
+    
+//    func locationManager(_ manager: CLLocationManager, didChangeAuthorization status: CLAuthorizationStatus) {
+//        if status == .authorizedWhenInUse {
+//            locationManager.requestLocation()
+//        }
+//    }
+    
+    func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+        if let location = locations.last {
+            locationManager.stopUpdatingLocation()
+            let lat = location.coordinate.latitude
+            let lon = location.coordinate.longitude
+            weatherManager.fetchWeather(latitude: lat, longitude: lon)
+        }
+    }
+}
+
+
 //MARK: - UITextFieldDelegate
 extension WeatherViewController: UITextFieldDelegate {
     @IBAction func searchPressed(_ sender: UIButton) {
         searchTextField.endEditing(true)
-        print(searchTextField.text!)
     }
     
     func textFieldShouldReturn(_ textField: UITextField) -> Bool {
         searchTextField.endEditing(true)
-        print(searchTextField.text!)
         return true
     }
     
